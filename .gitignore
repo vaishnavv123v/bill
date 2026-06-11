@@ -1,0 +1,90 @@
+
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# ======================
+# Virtual Environment
+# ======================
+venv/
+env/
+.venv/
+ENV/
+venv
+
+# ======================
+# Django
+# ======================
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Django migrations (optional - keep if team dev, ignore if fresh setup)
+# */migrations/*.py
+# */migrations/*.pyc
+
+# ======================
+# Environment variables
+# ======================
+.env
+.env.local
+.env.*
+
+# ======================
+# IDE / Editors
+# ======================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ======================
+# OS files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Jupyter / notebooks (if present)
+# ======================
+.ipynb_checkpoints/
+
+# ======================
+# Logs & cache
+# ======================
+*.log
+logs/
+
+# ======================
+# ML / AI heavy files (optional cleanup)
+# ======================
+*.h5
+*.pkl
+*.joblib
+*.model
+
+# ======================
+# Tesseract / OCR / system builds
+# ======================
+*.so
+*.dll
+*.dylib
+
+# ======================
+# Node (if frontend added later)
+# ======================
+node_modules/
+
+# ======================
+# Coverage / testing
+# ======================
+htmlcov/
+.coverage
+*.cover

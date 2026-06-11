@@ -1,0 +1,35 @@
+{% extends 'healthcare_app/base.html' %}
+{% block title %}Notifications | HealSync AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+    <h1>🛎️ Notifications</h1>
+
+    {% if notifications %}
+        <div class="notifications-list">
+            {% for notif in notifications %}
+            <div class="notification-card {% if not notif.is_read %}unread{% endif %}" 
+                 style="border-left: 5px solid {% if notif.priority == 'high' or notif.priority == 'critical' %}#ef4444{% elif notif.priority == 'medium' %}#eab308{% else %}#22c55e{% endif %};">
+                
+                <div class="d-flex justify-content-between">
+                    <h5>{{ notif.title }}</h5>
+                    <small>{{ notif.created_at|timesince }} ago</small>
+                </div>
+                
+                <p>{{ notif.message }}</p>
+                
+                {% if notif.link %}
+                    <a href="{{ notif.link }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                {% endif %}
+                
+                {% if not notif.is_read %}
+                    <a href="{% url 'mark_notification_read' notif.pk %}" class="mark-read">Mark as Read</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No notifications yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

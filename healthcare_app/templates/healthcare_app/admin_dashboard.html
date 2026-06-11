@@ -1,0 +1,827 @@
+{% extends 'healthcare_app/base.html' %}
+{% load static %}
+
+{% block title %}Executive Administration Control | HealSync AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blob-bg { opacity: 0.15; }
+
+    .admin-header {
+        margin-bottom: 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    /* Diagnostics Banner */
+    .diagnostics-pill {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.6rem 1.2rem;
+        border-radius: 100px;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    /* Stat Cards Cluster */
+    .stat-cluster {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3.5rem;
+    }
+
+    .vibrant-stat {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        padding: 2rem;
+        border-radius: var(--radius-xl);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-premium);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .vibrant-stat:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+    }
+
+    .vibrant-stat::before {
+        content: '';
+        position: absolute;
+        top: -15px; right: -15px;
+        width: 80px; height: 80px;
+        background: var(--accent-soft);
+        border-radius: 50%;
+        opacity: 0.4;
+    }
+
+    .stat-meta {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-hero {
+        font-size: 2.2rem;
+        font-weight: 900;
+    }
+
+    /* Charts section */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2.5rem;
+        margin-bottom: 4rem;
+    }
+
+    .chart-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-radius: var(--radius-xl);
+        padding: 2.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: var(--shadow-premium);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 250px;
+        margin-top: 1.5rem;
+    }
+
+    /* Modern Admin Tabs styling */
+    .admin-tabs-nav {
+        display: flex;
+        gap: 0.8rem;
+        margin-bottom: 2rem;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius-md);
+        padding: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        overflow-x: auto;
+    }
+
+    .admin-tab-btn {
+        background: transparent;
+        border: none;
+        padding: 0.8rem 1.6rem;
+        border-radius: 10px;
+        font-weight: 700;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+
+    .admin-tab-btn:hover, .admin-tab-btn.active {
+        background: var(--surface);
+        color: var(--primary-dark);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .tab-content-panel {
+        display: none;
+        animation: tabFadeIn 0.5s ease forwards;
+    }
+
+    .tab-content-panel.active {
+        display: block;
+    }
+
+    @keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tables & Inputs */
+    .table-container {
+        overflow-x: auto;
+        border-radius: var(--radius-md);
+    }
+
+    .status-select {
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(0,0,0,0.1);
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-header);
+        cursor: pointer;
+        outline: none;
+        transition: 0.2s;
+    }
+
+    .status-select:focus {
+        border-color: var(--primary);
+    }
+
+    .btn-action-submit {
+        background: var(--primary-dark);
+        border: none;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-action-submit:hover {
+        background: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Badges */
+    .badge-role {
+        padding: 0.3rem 0.7rem;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .badge-role-patient { background: #e0f2fe; color: #0284c7; }
+    .badge-role-hospital { background: #fef3c7; color: #d97706; }
+    .badge-role-insurance { background: #fae8ff; color: #c084fc; }
+    .badge-role-superuser { background: #fee2e2; color: #ef4444; }
+
+    /* Custom Scrollbar for modern feel */
+    ::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0,0,0,0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="admin-header animate-slide-up">
+    <div>
+        <h1 style="font-size: 2.8rem; margin-bottom: 0.5rem;" class="gradient-text">Executive Command Portal</h1>
+        <p style="color: var(--text-header); font-size: 1.05rem; font-weight: 600;">Systems online &bull; Monitoring platform operations and integrity streams</p>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem;">
+        <div class="diagnostics-pill">
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; animation: pulse-teal 2s infinite;"></div>
+            DATABASE INTEGRITY: OK
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;"><i class="fas fa-user-shield"></i> Authenticated as Superuser</span>
+    </div>
+</div>
+
+<!-- Global Statistics Cards Grid -->
+<div class="stat-cluster animate-slide-up" style="animation-delay: 0.05s;">
+    <!-- Total Registered Users -->
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.1rem; background: #e0f2fe; color: #0284c7;">
+            <i class="fas fa-users-gear"></i>
+        </div>
+        <span class="stat-meta">Total Accounts</span>
+        <span class="stat-hero gradient-text">{{ total_users }}</span>
+    </div>
+
+    <!-- Total Billed Amount -->
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.1rem; background: #e0f7fa; color: #00838f;">
+            <i class="fas fa-coins"></i>
+        </div>
+        <span class="stat-meta">Total Audited Volume</span>
+        <span class="stat-hero gradient-text">₹{{ total_billed|floatformat:0 }}</span>
+    </div>
+
+    <!-- Total Overcharge Savings -->
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.1rem; background: #dcfce7; color: #10b981;">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <span class="stat-meta">Overcharges Blocked</span>
+        <span class="stat-hero gradient-text" style="color: #10b981;">₹{{ total_overcharge|floatformat:0 }}</span>
+    </div>
+
+    <!-- Active Tasks / Decisions Needed -->
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.1rem; background: #fee2e2; color: #ef4444;">
+            <i class="fas fa-bell"></i>
+        </div>
+        <span class="stat-meta">Pending Review Items</span>
+        <span class="stat-hero gradient-text" style="color: #ef4444;">{{ pending_actions }}</span>
+    </div>
+</div>
+
+<!-- Visual Analytics Analytics Section -->
+<div class="charts-grid animate-slide-up" style="animation-delay: 0.1s;">
+    <!-- Risk Profiles Doughnut -->
+    <div class="chart-panel">
+        <h3 style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-mask" style="color: var(--risk-high);"></i> AI Fraud Risk Metrics
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">Risk classification for all uploaded hospital documents.</p>
+        <div class="chart-container">
+            <canvas id="riskDistributionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Claim Settlement polar/doughnut -->
+    <div class="chart-panel">
+        <h3 style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-file-shield" style="color: var(--accent);"></i> Claims Processing Summary
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">Resolution overview for insurance claims lodged by patients.</p>
+        <div class="chart-container">
+            <canvas id="claimsDistributionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Navigation Tabs -->
+<div class="admin-tabs-nav animate-slide-up" style="animation-delay: 0.15s;">
+    <button class="admin-tab-btn active" onclick="switchAdminTab(event, 'tab-bills')">
+        <i class="fas fa-file-invoice"></i> Audit Stream ({{ total_bills }})
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab(event, 'tab-claims')">
+        <i class="fas fa-file-shield"></i> Insurance Claims Control ({{ total_claims }})
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab(event, 'tab-complaints')">
+        <i class="fas fa-gavel"></i> Resolution Desk ({{ total_complaints }})
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab(event, 'tab-users')">
+        <i class="fas fa-users-gear"></i> Platform Directory ({{ total_users }})
+    </button>
+</div>
+
+<!-- Tab Content Containers -->
+<div class="main-panel animate-slide-up" style="animation-delay: 0.2s; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border-radius: var(--radius-xl); padding: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: var(--shadow-premium);">
+
+    <!-- ================== TAB: BILLS ================== -->
+    <div id="tab-bills" class="tab-content-panel active">
+
+        <!-- Tab Header Row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.2rem;">Recent Audit Stream</h2>
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                    <i class="fas fa-clock"></i>&nbsp;Showing {{ bills|length }} most recent uploads out of {{ total_bills }} total
+                </span>
+            </div>
+
+            <!-- Search + Clear -->
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div style="position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none;"></i>
+                    <input
+                        id="bills-search-input"
+                        type="text"
+                        placeholder="Search patient, hospital…"
+                        oninput="filterBillsTable(this.value)"
+                        style="padding: 0.55rem 0.9rem 0.55rem 2.2rem; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-header); background: rgba(255,255,255,0.9); outline: none; width: 240px; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='var(--primary)'"
+                        onblur="this.style.borderColor='rgba(0,0,0,0.1)'"
+                    >
+                </div>
+                <button
+                    id="bills-clear-btn"
+                    onclick="clearBillsSearch()"
+                    style="display: none; background: #fee2e2; border: none; color: #ef4444; padding: 0.55rem 1rem; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: 0.2s; align-items: center; gap: 6px;"
+                    title="Clear search"
+                >
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+        </div>
+
+        {% if bills %}
+        <!-- No results message (hidden by default) -->
+        <div id="bills-no-results" style="display: none; text-align: center; padding: 3rem 0; color: var(--text-muted);">
+            <i class="fas fa-search" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 1rem; display: block;"></i>
+            <p style="font-weight: 600;">No records match your search.</p>
+            <button onclick="clearBillsSearch()" style="margin-top: 0.8rem; background: var(--primary); border: none; color: white; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer;">Clear Search</button>
+        </div>
+
+        <div class="table-container">
+            <table class="table-vibrant" id="bills-table">
+                <thead>
+                    <tr>
+                        <th>Patient Info</th>
+                        <th>Hospital Provider</th>
+                        <th>Billed Cost</th>
+                        <th>Overcharge Risk</th>
+                        <th>AI Transparency</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="bills-tbody">
+                    {% for bill in bills %}
+                    <tr class="bill-row">
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-header);">{{ bill.patient.first_name|default:bill.patient.username }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ bill.patient.email }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-header);">{{ bill.hospital_name|default:"Unknown Hospital" }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ bill.bill_date|default:"No Date" }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 800; color: var(--text-header);">₹{{ bill.total_amount }}</div>
+                            {% if bill.total_overcharge > 0 %}
+                            <div style="font-size: 0.75rem; color: var(--risk-high); font-weight: 600;">Flagged: ₹{{ bill.total_overcharge }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if bill.is_analyzed %}
+                            <span class="status-badge {% if bill.fraud_risk == 'high' %}status-risk-high{% elif bill.fraud_risk == 'medium' %}status-risk-med{% else %}status-risk-low{% endif %}">
+                                {{ bill.fraud_risk }}
+                            </span>
+                            {% else %}
+                            <span class="status-badge" style="background: #f1f5f9; color: #94a3b8;">PENDING SCAN</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if bill.is_analyzed and bill.transparency_score is not None %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 60px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                    <div style="height: 100%; width: {{ bill.transparency_score }}%; background: {% if bill.transparency_score > 80 %}var(--risk-low){% elif bill.transparency_score > 50 %}var(--risk-med){% else %}var(--risk-high){% endif %};"></div>
+                                </div>
+                                <span style="font-weight: 800; font-size: 0.85rem; color: var(--primary-dark);">{{ bill.transparency_score }}%</span>
+                            </div>
+                            {% else %}
+                            <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Processing...</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'bill_detail' bill.pk %}" class="stat-icon" style="width: 36px; height: 36px; font-size: 0.9rem; text-decoration: none;" title="Inspect Audit Profile"><i class="fas fa-search-plus"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-folder-open"></i>
+            <h3>No Bills Registered</h3>
+            <p>No medical bills have been uploaded yet by patient accounts.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================== TAB: CLAIMS ================== -->
+    <div id="tab-claims" class="tab-content-panel">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Insurance Recovery Claims Control</h2>
+        {% if claims %}
+        <div class="table-container">
+            <table class="table-vibrant">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Insurance Provider</th>
+                        <th>Claim Info</th>
+                        <th>Probability</th>
+                        <th>Current Status</th>
+                        <th>Control Verdict</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claim in claims %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-header);">{{ claim.patient.first_name|default:claim.patient.username }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Email: {{ claim.patient.email }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-header);">{{ claim.insurance_company }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Policy: {{ claim.policy_number }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 800; color: var(--text-header);">₹{{ claim.claim_amount }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);"><a href="{% url 'bill_detail' claim.bill.id %}" style="color: var(--accent); font-weight: 600; text-decoration: none;">View Connected Bill</a></div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 800; font-size: 0.9rem; color: {% if claim.approval_probability > 70 %}var(--risk-low){% elif claim.approval_probability > 40 %}var(--risk-med){% else %}var(--risk-high){% endif %};">{{ claim.approval_probability|floatformat:0 }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge 
+                                {% if claim.status == 'approved' %}status-risk-low
+                                {% elif claim.status == 'rejected' %}status-risk-high
+                                {% elif claim.status == 'review' %}status-risk-med
+                                {% else %}status-risk-med{% endif %}">
+                                {{ claim.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <form action="{% url 'admin_update_claim_status' claim.id %}" method="POST" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                <select name="status" class="status-select">
+                                    <option value="pending" {% if claim.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="review" {% if claim.status == 'review' %}selected{% endif %}>Under Review</option>
+                                    <option value="approved" {% if claim.status == 'approved' %}selected{% endif %}>Approved</option>
+                                    <option value="rejected" {% if claim.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                </select>
+                                <button type="submit" class="btn-action-submit"><i class="fas fa-check"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-shield"></i>
+            <h3>No Claims Submitted</h3>
+            <p>No insurance claims have been submitted on the platform yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================== TAB: COMPLAINTS ================== -->
+    <div id="tab-complaints" class="tab-content-panel">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Malpractice Resolution Desk</h2>
+        {% if complaints %}
+        <div class="table-container">
+            <table class="table-vibrant">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Complaint Category</th>
+                        <th>Description / Details</th>
+                        <th>Submitted At</th>
+                        <th>Status</th>
+                        <th>Resolution Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint in complaints %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-header);">{{ complaint.patient.first_name|default:complaint.patient.username }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ complaint.patient.email }}</div>
+                        </td>
+                        <td>
+                            <span class="status-badge" style="background: #fef3c7; color: #d97706; font-weight: 700;">{{ complaint.get_complaint_type_display }}</span>
+                        </td>
+                        <td>
+                            <div style="max-width: 300px; font-size: 0.85rem; color: var(--text-body); font-weight: 500; overflow: hidden; text-overflow: ellipsis;" title="{{ complaint.description }}">
+                                {{ complaint.description }}
+                            </div>
+                            {% if complaint.bill %}
+                            <div style="font-size: 0.75rem; margin-top: 0.2rem;"><a href="{% url 'bill_detail' complaint.bill.id %}" style="color: var(--accent); font-weight: 600; text-decoration: none;"><i class="fas fa-paperclip"></i> Associated Invoice</a></div>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                            {{ complaint.submitted_at|date:"d M Y, h:i A" }}
+                        </td>
+                        <td>
+                            <span class="status-badge 
+                                {% if complaint.status == 'resolved' %}status-risk-low
+                                {% elif complaint.status == 'in_progress' %}status-risk-med
+                                {% else %}status-risk-high{% endif %}">
+                                {% if complaint.status == 'submitted' %}Submitted
+                                {% elif complaint.status == 'in_progress' %}In Progress
+                                {% elif complaint.status == 'resolved' %}Resolved
+                                {% else %}{{ complaint.status|title }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <form action="{% url 'admin_update_complaint_status' complaint.id %}" method="POST" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                <select name="status" class="status-select">
+                                    <option value="submitted" {% if complaint.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                                    <option value="in_progress" {% if complaint.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                </select>
+                                <button type="submit" class="btn-action-submit"><i class="fas fa-check"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-gavel"></i>
+            <h3>No Complaints Logged</h3>
+            <p>Patients have not submitted any malpractice or overcharging complaints yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================== TAB: USERS ================== -->
+    <div id="tab-users" class="tab-content-panel">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Registered Platform User Accounts</h2>
+        {% if users %}
+        <div class="table-container">
+            <table class="table-vibrant">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Username</th>
+                        <th>Email Address</th>
+                        <th>System Role</th>
+                        <th>Contact Number</th>
+                        <th>Join Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-header);">{{ u.first_name }} {{ u.last_name }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ u.userprofile.address|default:"No physical address set" }}</div>
+                        </td>
+                        <td style="font-weight: 700; color: var(--text-header);">{{ u.username }}</td>
+                        <td style="font-weight: 600; color: var(--text-muted);">{{ u.email|default:"No email set" }}</td>
+                        <td>
+                            {% if u.is_superuser %}
+                            <span class="badge-role badge-role-superuser">Superuser</span>
+                            {% else %}
+                            <span class="badge-role 
+                                {% if u.userprofile.role == 'patient' %}badge-role-patient
+                                {% elif u.userprofile.role == 'hospital' %}badge-role-hospital
+                                {% elif u.userprofile.role == 'insurance' %}badge-role-insurance
+                                {% else %}badge-role-patient{% endif %}">
+                                {{ u.userprofile.get_role_display|default:"Patient" }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--text-body); font-weight: 600;">
+                            {{ u.userprofile.phone|default:"-" }}
+                        </td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                            {{ u.date_joined|date:"d M Y" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>No Users Found</h3>
+            <p>Wait, this should never occur because you are logged in!</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab switching controller
+    function switchAdminTab(evt, tabId) {
+        // Get all elements with class="tab-content-panel" and hide them
+        var tabContents = document.getElementsByClassName("tab-content-panel");
+        for (var i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.remove("active");
+        }
+
+        // Get all elements with class="admin-tab-btn" and remove the class "active"
+        var tabLinks = document.getElementsByClassName("admin-tab-btn");
+        for (var i = 0; i < tabLinks.length; i++) {
+            tabLinks[i].classList.remove("active");
+        }
+
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Chart.js Integrations
+    document.addEventListener("DOMContentLoaded", function() {
+        // Chart 1: Fraud Risk profile doughnut
+        var ctxRisk = document.getElementById('riskDistributionChart').getContext('2d');
+        var riskChart = new Chart(ctxRisk, {
+            type: 'doughnut',
+            data: {
+                labels: ['High Risk', 'Medium Risk', 'Low Risk', 'Pending Audit'],
+                datasets: [{
+                    label: 'Hospital Bills',
+                    data: [{{ high_risk }}, {{ medium_risk }}, {{ low_risk }}, {{ un_analyzed }}],
+                    backgroundColor: [
+                        '#f43f5e', // high - red
+                        '#f59e0b', // med - amber
+                        '#10b981', // low - emerald
+                        '#94a3b8'  // pending - slate
+                    ],
+                    borderWidth: 2,
+                    borderColor: 'rgba(255, 255, 255, 0.95)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: {
+                                family: 'Plus Jakarta Sans',
+                                weight: 600,
+                                size: 12
+                            },
+                            color: '#334155',
+                            padding: 15
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // Chart 2: Claim status Polar Area Chart
+        var ctxClaims = document.getElementById('claimsDistributionChart').getContext('2d');
+        var claimsChart = new Chart(ctxClaims, {
+            type: 'bar',
+            data: {
+                labels: ['Pending', 'Under Review', 'Approved', 'Rejected'],
+                datasets: [{
+                    label: 'Insurance Claims',
+                    data: [{{ pending_claims_count }}, {{ under_review_claims }}, {{ approved_claims }}, {{ rejected_claims }}],
+                    backgroundColor: [
+                        '#6366f1', // pending - indigo
+                        '#f59e0b', // review - amber
+                        '#10b981', // approved - emerald
+                        '#f43f5e'  // rejected - red
+                    ],
+                    borderRadius: 8,
+                    maxBarThickness: 45
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                family: 'Inter',
+                                weight: 500
+                            },
+                            color: '#64748b'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Plus Jakarta Sans',
+                                weight: 700
+                            },
+                            color: '#334155'
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // ─── Bills Search & Clear ─────────────────────────────────────────────────
+    function filterBillsTable(query) {
+        var rows = document.querySelectorAll('#bills-tbody .bill-row');
+        var clearBtn = document.getElementById('bills-clear-btn');
+        var noResults = document.getElementById('bills-no-results');
+        var table = document.getElementById('bills-table');
+        var term = query.trim().toLowerCase();
+        var visibleCount = 0;
+
+        rows.forEach(function(row) {
+            var text = row.innerText.toLowerCase();
+            if (term === '' || text.includes(term)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Toggle Clear button — always visible once user types anything
+        if (term.length > 0) {
+            clearBtn.style.display = 'flex';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+
+        // Toggle no-results state
+        if (visibleCount === 0 && term.length > 0) {
+            table.style.display = 'none';
+            noResults.style.display = 'block';
+        } else {
+            table.style.display = '';
+            noResults.style.display = 'none';
+        }
+    }
+
+    function clearBillsSearch() {
+        var input = document.getElementById('bills-search-input');
+        input.value = '';
+        filterBillsTable('');
+        input.focus();
+    }
+</script>
+{% endblock %}

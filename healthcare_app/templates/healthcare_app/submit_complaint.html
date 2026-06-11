@@ -1,0 +1,113 @@
+{% extends 'healthcare_app/base.html' %}
+{% block title %}File Complaint | HealSync AI{% endblock %}
+
+{% block content %}
+
+<div style="max-width: 650px; margin: auto;" class="animate-slide-up">
+
+    <!-- HEADER -->
+    <div style="text-align:center; margin-bottom:2.5rem;">
+        <h1 style="font-size:2rem; color:#ef4444; margin-bottom:0.5rem;">
+            File a complaint
+        </h1>
+        <p style="color:#320101;">
+            Submit a complaint for overcharging, fraud, or billing issues
+        </p>
+    </div>
+
+    <!-- CARD -->
+    <div style="
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(20px);
+        padding: 2.5rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.4);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    ">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- BILL -->
+            <div style="margin-bottom:1.5rem;">
+                <label class="form-label">Select Bill</label>
+                {{ form.bill }}
+            </div>
+
+            <!-- TYPE -->
+            <div style="margin-bottom:1.5rem;">
+                <label class="form-label">Complaint Type</label>
+                {{ form.complaint_type }}
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div style="margin-bottom:2rem;">
+                <label class="form-label">Describe the Issue</label>
+                {{ form.description }}
+            </div>
+
+            <!-- BUTTON -->
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-paper-plane"></i> Submit Complaint
+            </button>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- STYLING -->
+<style>
+
+.form-label {
+    display:block;
+    font-size:0.85rem;
+    font-weight:700;
+    margin-bottom:6px;
+    color:#1e293b;
+}
+
+select, textarea {
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1.5px solid #e2e8f0;
+    background:#f8fafc;
+    font-size:0.95rem;
+    transition:0.3s;
+}
+
+select:focus, textarea:focus {
+    outline:none;
+    border-color:#ef4444;
+    background:white;
+    box-shadow:0 0 0 3px rgba(239,68,68,0.15);
+}
+
+textarea {
+    min-height:140px;
+    resize:vertical;
+}
+
+.btn-submit {
+    width:100%;
+    padding:14px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color:white;
+    border:none;
+    border-radius:12px;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 10px 20px rgba(239,68,68,0.3);
+}
+
+.btn-submit:hover {
+    transform:translateY(-2px);
+    box-shadow:0 15px 30px rgba(239,68,68,0.4);
+}
+
+</style>
+
+{% endblock %}

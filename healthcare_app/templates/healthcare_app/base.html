@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Intelligent Medical Billing Verification System{% endblock %}</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="AI-driven medical transparency platform. Audit bills, detect fraud, and secure your health data.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'healthcare_app/css/style.css' %}">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.4)), 
+                        url("{% static 'healthcare_app/image/hospital_bill_bg.png' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+
+        /* Modern Background Blobs - subtle overlay */
+        .blob-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            opacity: 0.2;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: blobFloat 20s infinite alternate;
+        }
+
+        .blob-1 { width: 500px; height: 500px; background: var(--primary); top: -100px; right: -100px; }
+        .blob-2 { width: 400px; height: 400px; background: var(--accent); bottom: -100px; left: -100px; animation-delay: -5s; }
+        .blob-3 { width: 300px; height: 300px; background: #fbbf24; top: 40%; left: 20%; animation-delay: -10s; }
+
+        @keyframes blobFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        .page-wrapper {
+            opacity: 0;
+            animation: pageFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <div class="blob-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <nav class="nav-glass">
+        <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
+            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="nav-logo">
+                <div style="width: 44px; height: 44px; background: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 16px var(--primary-glow);">
+                    <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif;">Intelli<span style="color: var(--primary);">Bill</span> Verification</div>
+            </a>
+
+            {% if user.is_authenticated %}
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+                {% if not user.is_superuser %}
+                <a href="{% url 'bill_list' %}" class="nav-link {% if 'bill' in request.resolver_match.url_name %}active{% endif %}">Archive</a>
+                <a href="{% url 'claim_list' %}" class="nav-link {% if 'claim' in request.resolver_match.url_name %}active{% endif %}">Claims</a>
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                {% if not user.is_superuser %}
+                <a href="{% url 'upload_bill' %}" class="btn-vibrant btn-vibrant-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                    <i class="fas fa-plus"></i> New Audit
+                </a>
+                {% endif %}
+                <a href="{% url 'logout' %}" style="color: #64748b; font-size: 1.2rem; transition: 0.3s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <a href="{% url 'login' %}" class="nav-link">Login</a>
+                <a href="{% url 'register' %}" class="btn-vibrant btn-vibrant-primary" style="padding: 0.7rem 1.5rem;">Join Portal</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-container">
+        {% if messages %}
+        <div style="margin-bottom: 2rem;">
+            {% for message in messages %}
+            <div class="animate-slide-up" style="background: white; border-left: 5px solid {% if message.tags == 'success' %}var(--primary){% else %}var(--risk-high){% endif %}; padding: 1.2rem 1.5rem; border-radius: 16px; box-shadow: var(--shadow-premium); display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}" style="color: {% if message.tags == 'success' %}var(--primary){% else %}var(--risk-high){% endif %}; font-size: 1.2rem;"></i>
+                <span style="font-weight: 600; color: var(--text-header);">{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="page-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% if request.resolver_match.url_name != 'home' %}
+    <footer class="footer-vibrant">
+        <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 4rem;">
+            <div>
+                <h3 style="color: white; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-heart-pulse" style="color: var(--primary);"></i> HealSyncAI
+                </h3>
+                <p style="opacity: 0.7;">Redefining healthcare transparency through cutting-edge AI. Protecting patient interests with real-time audit intelligence.</p>
+            </div>
+            <div>
+                <h4 style="color: white; margin-bottom: 1.2rem;">Explore</h4>
+                <ul style="list-style: none; opacity: 0.7;">
+                    <li style="margin-bottom: 0.8rem;"><a href="{% url 'dashboard' %}" style="color: white; text-decoration: none;">Dashboard</a></li>
+                    <li style="margin-bottom: 0.8rem;"><a href="{% url 'upload_bill' %}" style="color: white; text-decoration: none;">AI Auditor</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: white; margin-bottom: 1.2rem;">Support</h4>
+                <ul style="list-style: none; opacity: 0.7;">
+                    <li style="margin-bottom: 0.8rem;"><a href="#" style="color: white; text-decoration: none;">Help Center</a></li>
+                    <li style="margin-bottom: 0.8rem;"><a href="#" style="color: white; text-decoration: none;">Privacy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: white; margin-bottom: 1.2rem;">Newsletter</h4>
+                <div style="background: rgba(255,255,255,0.1); padding: 5px; border-radius: 12px; display: flex; border: 1px solid rgba(255,255,255,0.1);">
+                    <input type="email" placeholder="Email" style="background: transparent; border: none; padding: 10px; color: white; flex: 1; outline: none;">
+                    <button style="background: var(--primary); border: none; padding: 0 15px; border-radius: 8px; color: white; font-weight: 700; cursor: pointer;">Go</button>
+                </div>
+            </div>
+        </div>
+        <div style="max-width: 1400px; margin: 4rem auto 0; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); opacity: 0.5; font-size: 0.85rem; display: flex; justify-content: space-between;">
+            <div>&copy; 2026 HealSync AI Global. HIPAA Compliant Platform.</div>
+            <div style="display: flex; gap: 1.5rem;">
+                <span><i class="fas fa-shield-halved"></i> SSL Encrypted</span>
+                <span><i class="fas fa-lock"></i> Bio-Secure Data</span>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

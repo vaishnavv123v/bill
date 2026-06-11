@@ -1,0 +1,98 @@
+{% extends 'healthcare_app/base.html' %}
+{% load static %}
+
+{% block title %}HealSync AI | The Future of Healthcare Transparency{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero {
+        padding: 5rem 0;
+        text-align: center;
+        max-width: 100%;
+        margin: 0 auto;
+        min-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .hero h1 {
+        font-size: 4.5rem;
+        line-height: 1.1;
+        margin-bottom: 2rem;
+        letter-spacing: -3px;
+    }
+
+    .hero p {
+        font-size: 1.4rem;
+        color: white;
+        margin-bottom: 3.5rem;
+        opacity: 0.9;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        font-weight: 500;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem;
+        margin-top: 5rem;
+    }
+
+    .feature-card {
+        text-align: left;
+        padding: 3.5rem 3rem;
+    }
+
+    .stat-bar {
+        background: #0f172a;
+        padding: 4rem;
+        border-radius: var(--radius-xl);
+        display: flex;
+        justify-content: space-around;
+        margin: 6rem 0;
+        box-shadow: 0 40px 80px -20px rgba(0,0,0,0.2);
+    }
+
+    .stat-val h2 {
+        color: white;
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-val p {
+        color: rgba(255,255,255,0.6);
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    @media (max-width: 992px) {
+        .hero h1 { font-size: 3.5rem; }
+        .feature-grid { grid-template-columns: 1fr; }
+        .stat-bar { flex-direction: column; gap: 3rem; padding: 3rem; }
+        .stat-val h2 { font-size: 3rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero animate-slide-up">
+    <div style="display: inline-flex; align-items: center; gap: 10px; padding: 0.8rem 1.5rem; background: var(--surface); color: var(--accent); border-radius: 100px; font-weight: 800; font-size: 0.85rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-premium); border: 1px solid var(--accent-soft);">
+        <i class="fas fa-sparkles"></i> REVOLUTIONIZING HEALTHCARE AUDITS
+    </div>
+    <h1 class="gradient-text">Intelligent Medical Billing<br>Verification System</h1>
+    <p>Empowering millions of patients with state-of-the-art AI to audit medical billing, identify upcoded line-items, and secure financial wellness.</p>
+    
+    <div style="display: flex; gap: 1.5rem; justify-content: center;">
+        <a href="{% url 'register' %}" class="btn-vibrant btn-vibrant-primary" style="padding: 1.5rem 3.5rem; font-size: 1.25rem;">
+            Initialize Audit <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends 'healthcare_app/base.html' %}
+{% load static %}
+
+{% block title %}Operations Dashboard | HealSync AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Remove the default blob background for this page if needed, or keep it as a layer */
+    .blob-bg { opacity: 0.2; }
+
+    .dashboard-header {
+        margin-bottom: 4rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .stat-cluster {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 4rem;
+    }
+
+    .vibrant-stat {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        padding: 2.5rem;
+        border-radius: var(--radius-xl);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .vibrant-stat::before {
+        content: '';
+        position: absolute;
+        top: -20px; right: -20px;
+        width: 100px; height: 100px;
+        background: var(--accent-soft);
+        border-radius: 50%;
+        opacity: 0.5;
+    }
+
+    .stat-meta {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--text-header);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-hero {
+        font-size: 2.5rem;
+        font-weight: 900;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .main-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-radius: var(--radius-xl);
+        padding: 3rem;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Risk Visualization */
+    .risk-hub {
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        color: white;
+        padding: 2.5rem;
+        border-radius: var(--radius-xl);
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .integrity-meter {
+        height: 14px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 20px;
+        margin: 2rem 0;
+        overflow: hidden;
+        display: flex;
+    }
+
+    .meter-slice { height: 100%; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* Action Cards */
+    .action-card {
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        text-decoration: none;
+        color: var(--text-header);
+        font-weight: 700;
+        transition: 0.3s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .action-card:hover {
+        background: var(--accent-soft);
+        transform: scale(1.03);
+        color: var(--primary-dark);
+    }
+
+    @media (max-width: 1100px) {
+        .content-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header animate-slide-up">
+    <div>
+        <h1 style="font-size: 3rem; margin-bottom: 0.5rem;" class="gradient-text">Welcome, {{ user.first_name|default:user.username }}</h1>
+        <p style="color: var(--text-header); font-size: 1.1rem; font-weight: 600;">Your healthcare transparency operations are active &bull; {{ analyzed_bills }} Audits Completed</p>
+    </div>
+    <a href="{% url 'upload_bill' %}" class="btn-vibrant btn-vibrant-primary" style="padding: 1.2rem 2.5rem;">
+        <i class="fas fa-microchip"></i> New AI Audit
+    </a>
+</div>
+
+<div class="stat-cluster animate-slide-up" style="animation-delay: 0.1s;">
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.2rem;">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <span class="stat-meta">Total Documents</span>
+        <span class="stat-hero gradient-text">{{ total_bills }}</span>
+    </div>
+
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.2rem; background: #dcfce7; color: #10b981;">
+            <i class="fas fa-hand-holding-dollar"></i>
+        </div>
+        <span class="stat-meta">Claims Recovered</span>
+        <span class="stat-hero gradient-text">{{ total_claims }}</span>
+    </div>
+
+    <div class="vibrant-stat">
+        <div class="stat-icon" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.2rem; background: #fee2e2; color: #ef4444;">
+            <i class="fas fa-biohazard"></i>
+        </div>
+        <span class="stat-meta">High Risk Flags</span>
+        <span class="stat-hero gradient-text">{{ high_risk }}</span>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="main-panel animate-slide-up" style="animation-delay: 0.2s;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+            <h3 style="font-size: 1.5rem;">Recent Audit Stream</h3>
+            <a href="{% url 'bill_list' %}" style="color: var(--primary-dark); font-weight: 700; text-decoration: none;">View Archive <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        {% if bills %}
+        <div style="overflow-x: auto;">
+            <table class="table-vibrant">
+                <thead>
+                    <tr>
+                        <th>Provider & Date</th>
+                        <th>Amount</th>
+                        <th>AI Integrity</th>
+                        <th>Risk Assessment</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bill in bills %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 44px; height: 44px; background: var(--accent-soft); color: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                                    {{ bill.hospital_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: var(--text-header);">{{ bill.hospital_name }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ bill.bill_date }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-weight: 800; color: var(--text-header);">₹{{ bill.total_amount }}</td>
+                        <td>
+                            {% if bill.report %}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 60px; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
+                                    <div style="height: 100%; width: {{ bill.report.transparency_score }}%; background: var(--primary);"></div>
+                                </div>
+                                <span style="font-weight: 800; color: var(--primary); font-size: 0.9rem;">{{ bill.report.transparency_score }}%</span>
+                            </div>
+                            {% else %}
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Scanning...</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if bill.report %}
+                            <span class="status-badge {% if bill.report.fraud_risk == 'high' %}status-risk-high{% elif bill.report.fraud_risk == 'medium' %}status-risk-med{% else %}status-risk-low{% endif %}">
+                                {{ bill.report.fraud_risk }}
+                            </span>
+                            {% else %}
+                            <span class="status-badge" style="background: #f1f5f9; color: #94a3b8;">PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'bill_detail' bill.pk %}" class="stat-icon" style="width: 40px; height: 40px; text-decoration: none; font-size: 1rem;"><i class="fas fa-chevron-right"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 6rem 0;">
+            <div style="font-size: 4rem; color: #e2e8f0; margin-bottom: 2rem;"><i class="fas fa-folder-open"></i></div>
+            <h3 style="margin-bottom: 1rem;">No reports found</h3>
+            <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Upload your first hospital bill to begin the AI audit process.</p>
+            <a href="{% url 'upload_bill' %}" class="btn-vibrant btn-vibrant-primary">Start First Audit</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="side-panel animate-slide-up" style="animation-delay: 0.3s;">
+        <div class="risk-hub">
+            <h3 style="color: white; margin-bottom: 0.5rem;">Portfolio Integrity</h3>
+            <p style="font-size: 0.85rem; opacity: 0.7;">Aggregate health cost metrics.</p>
+            
+            <div class="integrity-meter">
+                {% if total_bills %}
+                <div class="meter-slice" style="background: var(--primary); width: {% widthratio low_risk total_bills 100 %}%;"></div>
+                <div class="meter-slice" style="background: var(--risk-med); width: {% widthratio medium_risk total_bills 100 %}%;"></div>
+                <div class="meter-slice" style="background: var(--risk-high); width: {% widthratio high_risk total_bills 100 %}%;"></div>
+                {% else %}
+                <div class="meter-slice" style="background: rgba(255,255,255,0.2); width: 100%;"></div>
+                {% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                <div>
+                    <div style="font-size: 0.65rem; font-weight: 800; color: var(--primary); margin-bottom: 0.3rem;">SECURE</div>
+                    <div style="font-size: 1.5rem; font-weight: 900;">{{ low_risk }}</div>
+                </div>
+                <div style="border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 0.65rem; font-weight: 800; color: var(--risk-med); margin-bottom: 0.3rem;">CAUTION</div>
+                    <div style="font-size: 1.5rem; font-weight: 900;">{{ medium_risk }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.65rem; font-weight: 800; color: var(--risk-high); margin-bottom: 0.3rem;">AUDIT</div>
+                    <div style="font-size: 1.5rem; font-weight: 900;">{{ high_risk }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="premium-card" style="padding: 2rem;">
+            <h4 style="margin-bottom: 1.5rem;">Service Suite</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <a href="{% url 'submit_claim' %}" class="action-card">
+                    <div class="stat-icon" style="width: 40px; height: 40px; font-size: 1rem;"><i class="fas fa-file-shield"></i></div>
+                    Insurance Recovery
+                </a>
+                <a href="{% url 'complaint_list' %}" class="action-card">
+                    <div class="stat-icon" style="width: 40px; height: 40px; font-size: 1rem; background: #fee2e2; color: #ef4444;"><i class="fas fa-gavel"></i></div>
+                    Report Malpractice
+                </a>
+            </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%); color: white; padding: 2.5rem; border-radius: var(--radius-xl); box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.4);">
+            <h4 style="color: white; margin-bottom: 1rem;"><i class="fas fa-brain"></i> Neural Core V3.0</h4>
+            <p style="font-size: 0.9rem; opacity: 0.9; line-height: 1.5; margin-bottom: 1.5rem;">The AI engine is currently scanning global benchmarks to provide you with the most accurate cost audit possible.</p>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: 800;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse-teal 2s infinite;"></div>
+                SYSTEMS OPERATIONAL
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

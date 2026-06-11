@@ -1,0 +1,58 @@
+{% extends 'healthcare_app/base.html' %}
+
+{% block title %}Claim Submission Result | HealSync AI{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in" style="max-width: 700px; margin: 40px auto; padding: 2rem;">
+
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="color: #28a745;">Claim Submitted Successfully</h1>
+        <p style="font-size: 1.1rem; color: #555;">Your insurance claim has been filed.</p>
+    </div>
+
+    <div style="background: white; border-radius: 24px; padding: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #eee;">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 0.5rem;">AI Predicted Approval Probability</h3>
+            <h1 style="font-size: 4.5rem; font-weight: 800; color: #28a745; margin: 0;">
+                {{ probability }}%
+            </h1>
+        </div>
+
+        <div style="margin: 2rem 0;">
+            <h4 style="color: #333;">AI Observations:</h4>
+            {% if reasons %}
+                <ul style="font-size: 1.05rem; line-height: 1.7;">
+                    {% for reason in reasons %}
+                        <li>{{ reason }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="color: #666;">No specific observations at this time.</p>
+            {% endif %}
+        </div>
+
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 16px; margin: 2rem 0; font-size: 0.95rem;">
+            <strong>Next Steps:</strong><br>
+            • Insurance company will review your claim within 7-15 working days.<br>
+            • You will be notified via email and dashboard.<br>
+            • Keep your original bill and documents ready.
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{% url 'claim_list' %}" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">
+                View All Claims
+            </a>
+            &nbsp;&nbsp;
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary" style="padding: 12px 30px; font-size: 1.1rem;">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
