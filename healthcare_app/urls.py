@@ -15,6 +15,7 @@ urlpatterns = [
     path('complaints/', views.complaint_list_view, name='complaint_list'),
     path('complaints/new/', views.submit_complaint_view, name='submit_complaint'),
     path('complaints/submit/', views.submit_complaint_view, name='submit_complaint'),
+    path('complaints/<int:pk>/download-email/', views.download_email_draft, name='download_email_draft'),
     path('claims/result/', views.claim_result_view, name='claim_result'),
     path('admin-dashboard/claims/<int:pk>/status/', views.admin_update_claim_status, name='admin_update_claim_status'),
     path('admin-dashboard/complaints/<int:pk>/status/', views.admin_update_complaint_status, name='admin_update_complaint_status'),

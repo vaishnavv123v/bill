@@ -128,7 +128,7 @@
                     <span>QTY</span>
                     <span>CHARGED (₹)</span>
                     <span>STANDARD (₹)</span>
-                    <span>OVERPRICING</span>
+                    <span>AI ANALYSIS</span>
                 </div>
                 {% for item in items %}
                 <div class="line-item-row" style="grid-template-columns: 2.5fr 0.5fr 1fr 1fr 1.2fr; gap: 1rem; border-bottom: 1px solid var(--border); padding: 1.2rem 1.5rem; align-items: center;">
@@ -137,11 +137,7 @@
                     <span style="font-weight: 900; color: var(--primary-dark);">₹{{ item.charged_price }}</span>
                     <span style="font-weight: 700; color: var(--text-muted);">{% if item.standard_price %}₹{{ item.standard_price }}{% else %}N/A{% endif %}</span>
                     
-                    {% if item.overcharge_percent > 0 %}
-                    <span style="font-weight: 800; color: #ef4444;"><i class="fas fa-arrow-up"></i> +{{ item.overcharge_percent }}% Overpriced</span>
-                    {% else %}
-                    <span style="font-weight: 800; color: var(--primary);"><i class="fas fa-check"></i> Fair Price</span>
-                    {% endif %}
+                    <span style="font-weight: 600; color: var(--text-body); font-size: 0.9rem;">{{ item.ai_analysis }}</span>
                 </div>
                 {% empty %}
                 <div style="padding: 3rem; text-align: center; color: var(--text-muted);">

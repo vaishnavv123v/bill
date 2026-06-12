@@ -13,7 +13,7 @@
             <p style="color:#460101;">Track and manage your submitted issues</p>
         </div>
 
-        <a href="{% url 'submit_complaint' %}" 
+        <a href="{% url 'submit_complaint' %}"
            style="background:#ef4444; color:white; padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:600;">
             + New Complaint
         </a>
@@ -22,7 +22,10 @@
     <!-- IF COMPLAINTS EXIST -->
     {% if complaints %}
         {% for complaint in complaints %}
-        <div style="background:rgb(246, 242, 242); padding:20px; border-radius:12px; margin-bottom:15px; box-shadow:0 4px 10px rgba(125, 4, 4, 0.05);">
+
+        <div style="background:rgb(246, 242, 242); padding:20px; border-radius:12px; margin-bottom:15px; box-shadow:0 4px 10px rgba(125, 4, 4, 0.05); cursor:pointer;"
+             data-id="{{ complaint.id }}"
+             onclick="toggleEmailDraft(this.dataset.id)">
 
             <div style="display:flex; justify-content:space-between;">
                 <div>
@@ -45,22 +48,77 @@
             </small>
             {% endif %}
 
+            {% if complaint.email_draft %}
+            <div style="margin-top:10px; color:#ef4444; font-size:13px; font-weight:600;">
+                <i class="fas fa-envelope"></i> AI Email Draft Available (Click to view)
+            </div>
+            {% endif %}
+
         </div>
+
+        <!-- EMAIL DRAFT MODAL -->
+        <div id="email-draft-{{ complaint.id }}"
+             style="display:none; background:white; padding:20px; border-radius:12px; margin-bottom:15px; border:2px solid #ef4444; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+
+            <h3 style="margin-top:0; color:#ef4444;">
+                AI-Generated Email Draft
+            </h3>
+
+            <pre style="background:#f8fafc; padding:15px; border-radius:8px; white-space:pre-wrap; max-height:300px; overflow-y:auto; font-family:monospace; font-size:14px;">{{ complaint.email_draft }}</pre>
+
+            <div style="margin-top:15px; text-align:right;">
+
+                <a href="{% url 'download_email_draft' complaint.id %}"
+                   style="background:#ef4444; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600;">
+
+                    <i class="fas fa-download"></i> Download Email Draft
+                </a>
+
+                <button data-id="{{ complaint.id }}"
+                        onclick="toggleEmailDraft(this.dataset.id)"
+                        style="background:#64748b; color:white; padding:10px 20px; border-radius:8px; border:none; font-weight:600; cursor:pointer; margin-left:10px;">
+
+                    Close
+                </button>
+
+            </div>
+        </div>
+
         {% endfor %}
 
     {% else %}
+
     <!-- EMPTY STATE -->
     <div style="text-align:center; padding:60px; background:white; border-radius:12px;">
-        <h3>No complaints yet</h3>
-        <p style="color:#64748b;">You haven't reported any issues.</p>
 
-        <a href="{% url 'submit_complaint' %}" 
+        <h3>No complaints yet</h3>
+
+        <p style="color:#64748b;">
+            You haven't reported any issues.
+        </p>
+
+        <a href="{% url 'submit_complaint' %}"
            style="background:#ef4444; color:white; padding:10px 20px; border-radius:10px; text-decoration:none;">
+
             File Your First Complaint
         </a>
+
     </div>
+
     {% endif %}
 
 </div>
+
+<script>
+function toggleEmailDraft(complaintId) {
+    var modal = document.getElementById('email-draft-' + complaintId);
+
+    if (modal.style.display === 'none') {
+        modal.style.display = 'block';
+    } else {
+        modal.style.display = 'none';
+    }
+}
+</script>
 
 {% endblock %}

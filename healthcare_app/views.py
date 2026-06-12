@@ -1,6 +1,7 @@
 import re
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,7 +10,7 @@ from django.db.models import Sum, Count
 
 from .models import Bill, BillItem, AnalysisReport, InsuranceClaim, Complaint, UserProfile
 from .forms import RegisterForm, BillUploadForm, InsuranceClaimForm, ComplaintForm
-from .ai_engine import run_full_analysis, predict_insurance_claim
+from .ai_engine import run_full_analysis, predict_insurance_claim, generate_ai_analysis, generate_complaint_email_draft
 from .models import Notification
 
 
@@ -353,6 +354,11 @@ def bill_detail_view(request, pk):
 
     report = getattr(bill, 'report', None)   # or bill.analysisreport_set.first()
 
+    # Generate AI analysis for each item
+    ai_analysis_map = generate_ai_analysis(items)
+    for item in items:
+        item.ai_analysis = ai_analysis_map.get(item.item_name, "Fair pricing verification.")
+
     context = {
         'bill': bill,
         'items': items,
@@ -500,7 +506,56 @@ def submit_complaint_view(request):
             complaint = form.save(commit=False)
             complaint.patient = request.user
             complaint.save()
-            messages.success(request, "✅ Complaint filed successfully.")
+
+            # Generate AI email draft with detailed bill analysis
+            hospital_name = None
+            bill_amount = None
+            bill_items = None
+            transparency_score = None
+            total_overcharge = None
+            fraud_risk = None
+
+            if complaint.bill:
+                hospital_name = complaint.bill.hospital_name
+                bill_amount = complaint.bill.total_amount
+
+                # Get bill items with analysis
+                items = BillItem.objects.filter(bill=complaint.bill)
+                bill_items = [
+                    {
+                        'item_name': item.item_name,
+                        'charged_price': float(item.charged_price),
+                        'standard_price': float(item.standard_price) if item.standard_price else None,
+                        'overcharge_percent': item.overcharge_percent,
+                        'flag': item.flag
+                    }
+                    for item in items
+                ]
+
+                # Get analysis report
+                report = getattr(complaint.bill, 'report', None)
+                if report:
+                    transparency_score = report.transparency_score
+                    total_overcharge = float(report.total_overcharge) if report.total_overcharge else None
+                    fraud_risk = report.fraud_risk
+
+            try:
+                email_draft = generate_complaint_email_draft(
+                    complaint_type=complaint.get_complaint_type_display(),
+                    description=complaint.description,
+                    hospital_name=hospital_name,
+                    bill_amount=bill_amount,
+                    bill_items=bill_items,
+                    transparency_score=transparency_score,
+                    total_overcharge=total_overcharge,
+                    fraud_risk=fraud_risk
+                )
+                complaint.email_draft = email_draft
+                complaint.save()
+            except Exception as e:
+                print("Email draft generation error:", e)
+
+            messages.success(request, "✅ Complaint filed successfully. Email draft generated.")
 
             return redirect('submit_complaint')  # reload same page
 
@@ -527,6 +582,22 @@ def complaint_list_view(request):
     return render(request, 'healthcare_app/complaint_list.html', {
         'complaints': complaints
     })
+
+
+@login_required
+def download_email_draft(request, pk):
+    if request.user.is_superuser:
+        complaint = get_object_or_404(Complaint, pk=pk)
+    else:
+        complaint = get_object_or_404(Complaint, pk=pk, patient=request.user)
+
+    if not complaint.email_draft:
+        messages.error(request, "No email draft available for this complaint.")
+        return redirect('complaint_list')
+
+    response = HttpResponse(complaint.email_draft, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="complaint_{pk}_email_draft.txt"'
+    return response
 
 
 

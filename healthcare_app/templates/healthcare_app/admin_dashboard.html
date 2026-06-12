@@ -537,6 +537,7 @@
                         <th>Description / Details</th>
                         <th>Submitted At</th>
                         <th>Status</th>
+                        <th>Email Draft</th>
                         <th>Resolution Update</th>
                     </tr>
                 </thead>
@@ -562,7 +563,7 @@
                             {{ complaint.submitted_at|date:"d M Y, h:i A" }}
                         </td>
                         <td>
-                            <span class="status-badge 
+                            <span class="status-badge
                                 {% if complaint.status == 'resolved' %}status-risk-low
                                 {% elif complaint.status == 'in_progress' %}status-risk-med
                                 {% else %}status-risk-high{% endif %}">
@@ -571,6 +572,25 @@
                                 {% elif complaint.status == 'resolved' %}Resolved
                                 {% else %}{{ complaint.status|title }}{% endif %}
                             </span>
+                        </td>
+                        <td>
+                            {% if complaint.email_draft %}
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <button data-id="{{ complaint.id }}"
+                                        onclick="toggleAdminEmailDraft(this.dataset.id)"
+                                        style="background: #e0f2fe; border: none; color: #0284c7; padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.2s;"
+                                        title="View Email Draft">
+                                    <i class="fas fa-envelope"></i> View
+                                </button>
+                                <a href="{% url 'download_email_draft' complaint.id %}"
+                                   style="background: #dcfce7; border: none; color: #10b981; padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.75rem; text-decoration: none; transition: 0.2s;"
+                                   title="Download Email Draft">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                            {% else %}
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">No Draft</span>
+                            {% endif %}
                         </td>
                         <td>
                             <form action="{% url 'admin_update_complaint_status' complaint.id %}" method="POST" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -582,6 +602,25 @@
                                 </select>
                                 <button type="submit" class="btn-action-submit"><i class="fas fa-check"></i></button>
                             </form>
+                        </td>
+                    </tr>
+
+                    <!-- EMAIL DRAFT MODAL -->
+                    <tr id="admin-email-draft-{{ complaint.id }}" style="display: none;">
+                        <td colspan="7" style="padding: 0;">
+                            <div style="background: #f8fafc; padding: 20px; border-left: 4px solid #0284c7; border-radius: 8px; margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h4 style="margin: 0; color: #0284c7; font-size: 1rem;">
+                                        <i class="fas fa-envelope"></i> AI-Generated Email Draft
+                                    </h4>
+                                    <button data-id="{{ complaint.id }}"
+                                            onclick="toggleAdminEmailDraft(this.dataset.id)"
+                                            style="background: #ef4444; border: none; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer;">
+                                        <i class="fas fa-times"></i> Close
+                                    </button>
+                                </div>
+                                <pre style="background: white; padding: 15px; border-radius: 8px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid #e2e8f0;">{{ complaint.email_draft }}</pre>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -678,6 +717,16 @@
         // Show the current tab, and add an "active" class to the button that opened the tab
         document.getElementById(tabId).classList.add("active");
         evt.currentTarget.classList.add("active");
+    }
+
+    // Toggle admin email draft modal
+    function toggleAdminEmailDraft(complaintId) {
+        var modal = document.getElementById('admin-email-draft-' + complaintId);
+        if (modal.style.display === 'none') {
+            modal.style.display = 'table-row';
+        } else {
+            modal.style.display = 'none';
+        }
     }
 
     // Chart.js Integrations

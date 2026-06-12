@@ -134,6 +134,7 @@ class Complaint(models.Model):
     description = models.TextField()
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='submitted')
+    email_draft = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Complaint #{self.id} by {self.patient.username}"
