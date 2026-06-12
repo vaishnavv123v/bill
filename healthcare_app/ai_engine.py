@@ -37,34 +37,77 @@ except:
 
 
 STANDARD_PRICES = {
-    "room": 1500,
+
+    # COMMON CONSULTATION / SERVICE
+    "consultation": 500,
+    "doctor consultation": 700,
+    "follow up consultation": 400,
+    "registration fee": 200,
+    "file charges": 100,
+    "admission charges": 500,
+    "discharge charges": 300,
+
+    # NURSING / BASIC CARE
     "nursing": 800,
     "nursing fees": 800,
-    "ot charge": 25000,
-    "major ot": 30000,
-    "operation theatre": 25000,
+    "nursing charges": 800,
+    "attender charges": 500,
+    "service charges": 600,
+
+    # COMMON MEDICINES / ITEMS
+    "paracetamol": 20,
+    "antibiotic": 150,
+    "painkiller": 80,
+    "iv fluids": 250,
+    "glucose": 180,
+    "syringe": 25,
+    "bandage": 50,
+    "cotton": 30,
+    "surgical gloves": 40,
+
+    # COMMON PROCEDURES
     "injection": 150,
     "nebulization": 300,
     "blood transfusion": 1500,
-    "professional fees": 2000,
-    "doctor fees": 1500,
-    "consultation": 500,
+    "oxygen therapy": 1200,
+    "physiotherapy": 800,
+    "ecg": 500,
+    "echo": 2500,
+
+    # LAB TESTS
     "lab test": 400,
-    "x ray": 800,
-    "scan": 3000,
-    "mri scan": 3000,
-    "ct scan": 2500,
-    "x-ray": 800,
     "blood test": 300,
     "complete blood count": 400,
-    "paracetamol": 20,
-    "consultation": 500,
-    "injection": 150,
-    "minor surgery": 5000,
-    "major surgery": 30000,
-    "ward charges": 1000,
-    "room charges": 2000,
-    "nursing charges": 500,
+    "cbc": 400,
+    "blood sugar": 150,
+    "thyroid test": 600,
+    "liver function test": 900,
+    "kidney function test": 900,
+    "lipid profile": 700,
+    "urine test": 250,
+    "dengue test": 1200,
+    "covid test": 800,
+    "hba1c": 700,
+
+    # SCANS / IMAGING
+    "x ray": 800,
+    "x-ray": 800,
+    "ultrasound": 1500,
+    "mri scan": 6000,
+    "ct scan": 4500,
+    "doppler scan": 2500,
+    "mammogram": 2500,
+
+    # CARDIAC TESTS
+    "tmt": 2500,
+    "cardiac enzymes": 1800,
+
+    # DENTAL
+    "tooth extraction": 2500,
+    "dental cleaning": 1500,
+
+    # OTHER
+    "medical certificate": 300,
 }
 
 
@@ -679,28 +722,27 @@ def generate_ai_analysis(items):
     # -----------------------------
     # AI PROMPT (ONLY FOR LANGUAGE)
     # -----------------------------
-    prompt = f"""
-You are a hospital billing explanation assistant.
-
-IMPORTANT RULES:
-- Do NOT calculate prices.
-- Do NOT change meaning of price_status.
-- Convert into simple patient-friendly sentences.
-- 1–2 sentences max.
-- No labels like Fair/High/Unknown.
-- No "Qty", no codes, no bullet points.
-- Must mention insurance when relevant.
-
-SPECIAL RULE:
-If price_status is "Hospital Dependent",
-explain that charges vary by hospital and are not strictly overpriced.
-
-Return ONLY valid JSON.
-
-Items:
-{json.dumps(items_list, indent=2)}
-"""
-
+    prompt = f""" You are a hospital billing assistant.
+     Return ONLY valid JSON. RULES: - Each analysis must be under 100 characters.
+      - Maximum 1 short sentence.
+      - STRICT LIMIT: Never exceed 100 characters.
+      - Prefer 6-10 words.
+      - Shorter is better.
+    - Professional and patient-friendly.
+    - No quantity, billing frequency, or calculations.
+    - Avoid OCR junk and repetitive wording.
+    - Do not repeat full item names unnecessarily.
+    PRICE RULES:
+    - Reasonable: "Pricing appears reasonable."
+    - Slightly high: "Pricing is slightly above typical rates."
+    - Much higher: "Charge is higher than typical pricing."
+    - No standard: "Pricing varies by hospital and treatment."
+    - Hospital dependent: "Charges vary across hospitals."
+    INSURANCE: - Mention briefly only when relevant.
+    - Example: "Usually covered by insurance."
+    Return compact natural explanations only.
+    Items: {json.dumps(items_list, indent=2)} """
+    
     try:
         url = "https://api.groq.com/openai/v1/chat/completions"
 

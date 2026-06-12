@@ -64,6 +64,59 @@
 
     .line-item-row:hover { background: var(--accent-soft); transform: translateX(5px); }
 
+    .bill-table-container {
+        table-layout: fixed;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .bill-table-header {
+        display: grid;
+        grid-template-columns: 2.5fr 0.5fr 1fr 1fr 2.2fr;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: var(--bg-main);
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+    }
+
+    .bill-table-row {
+        display: grid;
+        grid-template-columns: 2.5fr 0.5fr 1fr 1fr 2.2fr;
+        gap: 1rem;
+        padding: 1.2rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        align-items: center;
+        transition: 0.2s;
+    }
+
+    .bill-table-row:hover {
+        background: var(--accent-soft);
+        transform: translateX(5px);
+    }
+
+    .ai-analysis-cell {
+        font-weight: 600;
+        color: var(--text-body);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        padding: 0.8rem 1rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 10px;
+        border-left: 4px solid var(--primary);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        min-height: 3rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        hyphens: auto;
+        text-align: left;
+    }
+
     .insight-pill {
         background: linear-gradient(135deg, white 0%, #f1f5f9 100%);
         padding: 2.5rem;
@@ -75,6 +128,49 @@
     @media (max-width: 992px) {
         .report-grid { grid-template-columns: 1fr; }
         .meta-aside { position: static; }
+    }
+
+    @media (max-width: 768px) {
+        .bill-table-header {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            padding: 0.8rem;
+        }
+
+        .bill-table-header span {
+            display: none;
+        }
+
+        .bill-table-header span:first-child {
+            display: block;
+            font-size: 0.85rem;
+        }
+
+        .bill-table-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+
+        .bill-table-row span {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .bill-table-row span::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-right: 0.5rem;
+        }
+
+        .ai-analysis-cell {
+            min-height: auto;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+        }
     }
 </style>
 {% endblock %}
@@ -123,7 +219,7 @@
             </div>
 
             <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--accent-soft); overflow: hidden;">
-                <div style="padding: 1rem 1.5rem; background: var(--bg-main); display: grid; grid-template-columns: 2.5fr 0.5fr 1fr 1fr 1.2fr; gap: 1rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1px;">
+                <div class="bill-table-header">
                     <span>ITEM DESCRIPTION</span>
                     <span>QTY</span>
                     <span>CHARGED (₹)</span>
@@ -131,13 +227,13 @@
                     <span>AI ANALYSIS</span>
                 </div>
                 {% for item in items %}
-                <div class="line-item-row" style="grid-template-columns: 2.5fr 0.5fr 1fr 1fr 1.2fr; gap: 1rem; border-bottom: 1px solid var(--border); padding: 1.2rem 1.5rem; align-items: center;">
+                <div class="bill-table-row">
                     <span style="font-weight: 700; color: var(--text-header);">{{ item.item_name }}</span>
                     <span style="color: var(--text-muted); font-weight: 600;">{{ item.quantity }}</span>
                     <span style="font-weight: 900; color: var(--primary-dark);">₹{{ item.charged_price }}</span>
                     <span style="font-weight: 700; color: var(--text-muted);">{% if item.standard_price %}₹{{ item.standard_price }}{% else %}N/A{% endif %}</span>
-                    
-                    <span style="font-weight: 600; color: var(--text-body); font-size: 0.9rem;">{{ item.ai_analysis }}</span>
+
+                    <span class="ai-analysis-cell">{{ item.ai_analysis }}</span>
                 </div>
                 {% empty %}
                 <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
